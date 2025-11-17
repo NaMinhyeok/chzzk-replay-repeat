@@ -3,6 +3,11 @@
   "name": "CHZZK Replay Repeat",
   "description": "치지직 다시보기 구간 반복 재생",
   "version": "1.0.0",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "permissions": [],
   "host_permissions": [
     "https://chzzk.naver.com/*"
