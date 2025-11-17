@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "CHZZK Replay Repeat",
+  "description": "치지직 다시보기 구간 반복 재생",
+  "version": "1.0.0",
+  "permissions": [],
+  "host_permissions": [
+    "https://chzzk.naver.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://chzzk.naver.com/*"],
+      "js": ["src/content/index.ts"]
+    }
+  ]
+}
