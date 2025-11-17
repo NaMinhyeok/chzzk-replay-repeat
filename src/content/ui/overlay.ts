@@ -228,33 +228,51 @@ export class LoopOverlay {
       const isButton = element instanceof HTMLButtonElement;
       const shouldDrag = isButton || (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT');
 
-      if (shouldDrag) {
+      if (shouldDrag && this.container) {
         this.isDragging = true;
         wasDragging = false;
-        const rect = this.container?.getBoundingClientRect();
-        if (rect) {
-          this.dragOffset = {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top,
-          };
-        }
+
+        // 현재 위치를 left/top으로 변환 (right에서 left로 전환 시 점프 방지)
+        const rect = this.container.getBoundingClientRect();
+        const parent = this.container.offsetParent as HTMLElement;
+        const parentRect = parent ? parent.getBoundingClientRect() : { left: 0, top: 0 };
+
+        // 현재 실제 위치를 left/top으로 고정
+        const currentLeft = rect.left - parentRect.left;
+        const currentTop = rect.top - parentRect.top;
+
+        this.container.style.left = `${currentLeft}px`;
+        this.container.style.top = `${currentTop}px`;
+        this.container.style.right = 'auto';
+        this.container.style.bottom = 'auto';
+
+        // 마우스와 요소의 상대 위치 저장
+        this.dragOffset = {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        };
       }
     });
 
     const handleMouseMove = (e: MouseEvent) => {
       if (this.isDragging && this.container) {
         wasDragging = true;
-        const x = e.clientX - this.dragOffset.x;
-        const y = e.clientY - this.dragOffset.y;
+
+        const parent = this.container.offsetParent as HTMLElement;
+        const parentRect = parent ? parent.getBoundingClientRect() : { left: 0, top: 0 };
+
+        // 부모 기준 좌표로 계산
+        const x = e.clientX - parentRect.left - this.dragOffset.x;
+        const y = e.clientY - parentRect.top - this.dragOffset.y;
+
         this.container.style.left = `${x}px`;
         this.container.style.top = `${y}px`;
-        this.container.style.right = 'auto';
       }
     };
 
     const handleMouseUp = (e: MouseEvent) => {
       if (this.isDragging && wasDragging) {
-        // 드래그가 있었다면 이벤트 전파 차단 // TODO: 아직 해결되지 않음 드래그를 놓았을 때 video로 마우스 클릭 이벤트 전파가 여전히 일어남
+        // 드래그가 있었다면 이벤트 전파 차단
         e.stopPropagation();
         e.preventDefault();
       }
