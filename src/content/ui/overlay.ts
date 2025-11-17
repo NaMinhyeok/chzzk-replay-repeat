@@ -63,6 +63,12 @@ export class LoopOverlay {
       z-index: 9999;
     `;
 
+    // 오버레이 전체 이벤트 버블링 방지
+    overlay.addEventListener('click', (e) => e.stopPropagation());
+    overlay.addEventListener('mousedown', (e) => e.stopPropagation());
+    overlay.addEventListener('mouseup', (e) => e.stopPropagation());
+    overlay.addEventListener('dblclick', (e) => e.stopPropagation());
+
     // 패널 생성
     this.panel = this.createPanel();
     overlay.appendChild(this.panel);
@@ -214,6 +220,8 @@ export class LoopOverlay {
    * 드래그 기능 설정
    */
   private setupDragging(element: HTMLElement): void {
+    let wasDragging = false;
+
     element.addEventListener('mousedown', (e) => {
       // 버튼이면 항상 드래그 허용, 패널이면 버튼/입력 외부만 드래그 허용
       const target = e.target as HTMLElement;
@@ -222,6 +230,7 @@ export class LoopOverlay {
 
       if (shouldDrag) {
         this.isDragging = true;
+        wasDragging = false;
         const rect = this.container?.getBoundingClientRect();
         if (rect) {
           this.dragOffset = {
@@ -232,19 +241,29 @@ export class LoopOverlay {
       }
     });
 
-    document.addEventListener('mousemove', (e) => {
+    const handleMouseMove = (e: MouseEvent) => {
       if (this.isDragging && this.container) {
+        wasDragging = true;
         const x = e.clientX - this.dragOffset.x;
         const y = e.clientY - this.dragOffset.y;
         this.container.style.left = `${x}px`;
         this.container.style.top = `${y}px`;
         this.container.style.right = 'auto';
       }
-    });
+    };
 
-    document.addEventListener('mouseup', () => {
+    const handleMouseUp = (e: MouseEvent) => {
+      if (this.isDragging && wasDragging) {
+        // 드래그가 있었다면 이벤트 전파 차단 // TODO: 아직 해결되지 않음 드래그를 놓았을 때 video로 마우스 클릭 이벤트 전파가 여전히 일어남
+        e.stopPropagation();
+        e.preventDefault();
+      }
       this.isDragging = false;
-    });
+      wasDragging = false;
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp, true); // capture 단계에서 처리
   }
 
   /**
