@@ -163,6 +163,19 @@ export class LoopOverlay {
     input.value = value;
     input.className = 'chzzk-time-input bg-gray-800 border border-gray-600 text-white text-sm px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all';
 
+    // 키보드 이벤트 전파 차단 (방향키 등이 비디오 플레이어로 전달되지 않도록)
+    input.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+    });
+
+    input.addEventListener('keyup', (e) => {
+      e.stopPropagation();
+    });
+
+    input.addEventListener('keypress', (e) => {
+      e.stopPropagation();
+    });
+
     input.addEventListener('change', () => {
       const time = this.parseTime(input.value);
       if (time !== null) {
