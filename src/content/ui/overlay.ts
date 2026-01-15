@@ -35,6 +35,10 @@ export class LoopOverlay {
     if (videoParent) {
       videoParent.style.position = 'relative';
       videoParent.appendChild(this.container);
+
+      requestAnimationFrame(() => {
+        this.panel?.classList.add('animate-panel-enter');
+      });
     } else {
       document.body.appendChild(this.container);
     }
@@ -86,7 +90,7 @@ export class LoopOverlay {
    */
   private createPanel(): HTMLDivElement {
     const panel = document.createElement('div');
-    panel.className = 'chzzk-loop-panel bg-black/80 rounded-xl shadow-2xl p-5 min-w-[320px] border border-gray-700';
+    panel.className = 'chzzk-loop-panel rounded-2xl p-6 w-[340px] border border-white/10 ring-1 ring-white/5';
     panel.style.cursor = 'move';
 
     // 드래그 기능
@@ -94,12 +98,12 @@ export class LoopOverlay {
 
     // 제목
     const title = document.createElement('div');
-    title.className = 'text-white font-bold text-base mb-4 flex items-center justify-between pb-3 border-b border-gray-700';
+    title.className = 'text-white font-bold text-base mb-4 flex items-center justify-between pb-3 border-b border-white/10';
     title.innerHTML = `
-      <span class="flex items-center gap-2">🔁 구간 반복</span>
+      <span class="flex items-center gap-2" style="color: #00ffa3;">🔁 구간 반복</span>
       <div class="flex gap-2">
-        <button class="minimize-btn text-gray-400 hover:text-white transition-colors text-lg">−</button>
-        <button class="close-btn text-gray-400 hover:text-white transition-colors">✕</button>
+        <button class="minimize-btn text-gray-400 hover:text-white transition-colors text-lg hover:scale-110 active:scale-90">−</button>
+        <button class="close-btn text-gray-400 hover:text-white transition-colors hover:scale-110 active:scale-90">✕</button>
       </div>
     `;
     title.querySelector('.minimize-btn')?.addEventListener('click', () => this.toggleMinimize());
@@ -147,7 +151,7 @@ export class LoopOverlay {
    */
   private createButton(text: string, onClick: () => void): HTMLButtonElement {
     const button = document.createElement('button');
-    button.className = 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-colors';
+    button.className = 'bg-white/5 hover:bg-white/10 active:bg-white/5 text-white/90 text-sm font-semibold py-2.5 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border border-white/10';
     button.textContent = text;
     button.addEventListener('click', onClick);
     return button;
@@ -161,7 +165,7 @@ export class LoopOverlay {
     input.type = 'text';
     input.placeholder = placeholder;
     input.value = value;
-    input.className = 'chzzk-time-input bg-gray-800 border border-gray-600 text-white text-sm px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all';
+    input.className = 'chzzk-time-input bg-black/40 border border-white/10 text-white text-sm px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#00ffa3]/50 focus:border-[#00ffa3]/50 transition-all hover:border-white/20';
 
     // 키보드 이벤트 전파 차단 (방향키 등이 비디오 플레이어로 전달되지 않도록)
     input.addEventListener('keydown', (e) => {
@@ -215,15 +219,18 @@ export class LoopOverlay {
    */
   private createToggleButton(): HTMLButtonElement {
     const button = document.createElement('button');
-    button.className = 'w-full bg-gray-700 hover:bg-gray-600 active:bg-gray-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-md';
-    button.textContent = '반복 시작';
+    button.className = 'w-full bg-white/10 hover:bg-white/15 active:bg-white/5 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg border border-white/10';
+    button.textContent = '▶ 반복 시작';
 
     button.addEventListener('click', () => {
       const enabled = this.controller.toggle();
-      button.textContent = enabled ? '⏸ 반복 중지' : '▶ 반복 시작';
-      button.className = enabled
-        ? 'w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-md'
-        : 'w-full bg-gray-700 hover:bg-gray-600 active:bg-gray-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-md';
+      if (enabled) {
+        button.textContent = '⏸ 반복 중지';
+        button.className = 'w-full bg-[#00ffa3] hover:bg-[#33ffb5] text-black font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[0_0_20px_rgba(0,255,163,0.2)] border border-[#00ffa3] animate-glow-pulse';
+      } else {
+        button.textContent = '▶ 반복 시작';
+        button.className = 'w-full bg-white/10 hover:bg-white/15 active:bg-white/5 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg border border-white/10';
+      }
     });
 
     return button;
@@ -330,7 +337,7 @@ export class LoopOverlay {
    */
   private createMinimizedButton(): HTMLButtonElement {
     const button = document.createElement('button');
-    button.className = 'bg-black/80 hover:bg-black/90 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-2xl border border-gray-700 transition-all hover:scale-110';
+    button.className = 'bg-black/80 hover:bg-black text-[#00ffa3] backdrop-blur-xl rounded-full w-12 h-12 flex items-center justify-center shadow-2xl border border-white/10 transition-all duration-300 hover:scale-110 hover:shadow-[#00ffa3]/20 animate-scale-in';
     button.style.cursor = 'move';
     button.innerHTML = '🔁';
     button.title = '구간 반복 패널 열기';
@@ -363,11 +370,23 @@ export class LoopOverlay {
 
     if (this.panel && this.minimizedButton) {
       if (this.isMinimized) {
-        this.panel.style.display = 'none';
-        this.minimizedButton.style.display = 'flex';
+        this.panel.classList.remove('animate-panel-enter');
+        this.panel.classList.add('animate-panel-exit');
+
+        setTimeout(() => {
+          if (this.isMinimized && this.panel && this.minimizedButton) {
+            this.panel.style.display = 'none';
+            this.minimizedButton.style.display = 'flex';
+            this.minimizedButton.classList.remove('animate-scale-in');
+            void this.minimizedButton.offsetWidth;
+            this.minimizedButton.classList.add('animate-scale-in');
+          }
+        }, 300);
       } else {
-        this.panel.style.display = 'block';
         this.minimizedButton.style.display = 'none';
+        this.panel.style.display = 'block';
+        this.panel.classList.remove('animate-panel-exit');
+        this.panel.classList.add('animate-panel-enter');
       }
     }
   }
