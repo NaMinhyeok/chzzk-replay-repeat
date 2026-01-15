@@ -1,6 +1,3 @@
-/**
- * 비디오 위에 표시되는 구간 반복 UI 오버레이
- */
 
 import type { LoopController } from '../loop-controller';
 
@@ -20,17 +17,13 @@ export class LoopOverlay {
     this.controller = controller;
   }
 
-  /**
-   * 오버레이 생성 및 표시
-   */
   show(videoElement: HTMLVideoElement): void {
     if (this.container) {
-      return; // 이미 표시됨
+      return;
     }
 
     this.container = this.createOverlay();
 
-    // 비디오 요소의 부모에 오버레이 추가
     const videoParent = videoElement.parentElement;
     if (videoParent) {
       videoParent.style.position = 'relative';
@@ -44,9 +37,6 @@ export class LoopOverlay {
     }
   }
 
-  /**
-   * 오버레이 제거
-   */
   hide(): void {
     if (this.container) {
       this.container.remove();
@@ -54,9 +44,6 @@ export class LoopOverlay {
     }
   }
 
-  /**
-   * 오버레이 DOM 생성
-   */
   private createOverlay(): HTMLDivElement {
     const overlay = document.createElement('div');
     overlay.className = 'chzzk-loop-overlay';
@@ -67,17 +54,14 @@ export class LoopOverlay {
       z-index: 9999;
     `;
 
-    // 오버레이 전체 이벤트 버블링 방지
     overlay.addEventListener('click', (e) => e.stopPropagation());
     overlay.addEventListener('mousedown', (e) => e.stopPropagation());
     overlay.addEventListener('mouseup', (e) => e.stopPropagation());
     overlay.addEventListener('dblclick', (e) => e.stopPropagation());
 
-    // 패널 생성
     this.panel = this.createPanel();
     overlay.appendChild(this.panel);
 
-    // 최소화 버튼 생성
     this.minimizedButton = this.createMinimizedButton();
     this.minimizedButton.style.display = 'none';
     overlay.appendChild(this.minimizedButton);
@@ -85,41 +69,42 @@ export class LoopOverlay {
     return overlay;
   }
 
-  /**
-   * 컨트롤 패널 생성
-   */
   private createPanel(): HTMLDivElement {
     const panel = document.createElement('div');
-    panel.className = 'chzzk-loop-panel rounded-2xl p-6 w-[340px] border border-white/10 ring-1 ring-white/5';
+    panel.className = 'chzzk-loop-panel rounded-3xl p-6 w-[360px] border border-white/10 ring-1 ring-white/5 shadow-2xl';
     panel.style.cursor = 'move';
 
-    // 드래그 기능
     this.setupDragging(panel);
 
-    // 제목
     const title = document.createElement('div');
-    title.className = 'text-white font-bold text-base mb-4 flex items-center justify-between pb-3 border-b border-white/10';
+    title.className = 'text-white/90 font-bold text-lg mb-6 flex items-center justify-between select-none';
     title.innerHTML = `
-      <span class="flex items-center gap-2" style="color: #00ffa3;">🔁 구간 반복</span>
+      <span class="flex items-center gap-3 drop-shadow-md">
+        <span class="text-xl">🔁</span>
+        <span style="color: #00ffa3;">구간 반복</span>
+      </span>
       <div class="flex gap-2">
-        <button class="minimize-btn text-gray-400 hover:text-white transition-colors text-lg hover:scale-110 active:scale-90">−</button>
-        <button class="close-btn text-gray-400 hover:text-white transition-colors hover:scale-110 active:scale-90">✕</button>
+        <button class="minimize-btn text-white/40 hover:text-white transition-all duration-300 hover:scale-110 active:scale-90 p-1.5 rounded-lg hover:bg-white/10" aria-label="최소화">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <button class="close-btn text-white/40 hover:text-red-400 transition-all duration-300 hover:scale-110 active:scale-90 p-1.5 rounded-lg hover:bg-white/10" aria-label="닫기">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
     `;
     title.querySelector('.minimize-btn')?.addEventListener('click', () => this.toggleMinimize());
     title.querySelector('.close-btn')?.addEventListener('click', () => this.hide());
     panel.appendChild(title);
 
-    // 버튼 컨테이너
     const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'grid grid-cols-2 gap-2 mb-4';
+    buttonContainer.className = 'grid grid-cols-2 gap-3 mb-6';
 
-    const setStartBtn = this.createButton('시작 지점 설정', () => {
+    const setStartBtn = this.createButton('시작 지점', () => {
       const time = this.controller.setStartPoint();
       this.updateTimeInput(this.startInput!, time);
     });
 
-    const setEndBtn = this.createButton('끝 지점 설정', () => {
+    const setEndBtn = this.createButton('끝 지점', () => {
       const time = this.controller.setEndPoint();
       this.updateTimeInput(this.endInput!, time);
     });
@@ -128,46 +113,37 @@ export class LoopOverlay {
     buttonContainer.appendChild(setEndBtn);
     panel.appendChild(buttonContainer);
 
-    // 시간 입력 필드
     const timeInputsContainer = document.createElement('div');
-    timeInputsContainer.className = 'space-y-2.5 mb-4';
+    timeInputsContainer.className = 'divide-y divide-white/10 mb-6 bg-black/20 rounded-2xl border border-white/5';
 
-    this.startInput = this.createTimeInput('시작', '00:00:00');
-    this.endInput = this.createTimeInput('끝', '00:00:00');
+    this.startInput = this.createTimeInput('00:00:00', '00:00:00');
+    this.endInput = this.createTimeInput('00:00:00', '00:00:00');
 
-    timeInputsContainer.appendChild(this.createInputRow('시작', this.startInput));
-    timeInputsContainer.appendChild(this.createInputRow('끝', this.endInput));
+    timeInputsContainer.appendChild(this.createInputRow('시작', this.startInput, 'py-4'));
+    timeInputsContainer.appendChild(this.createInputRow('끝', this.endInput, 'py-4'));
     panel.appendChild(timeInputsContainer);
 
-    // 토글 버튼
     this.toggleButton = this.createToggleButton();
     panel.appendChild(this.toggleButton);
 
     return panel;
   }
 
-  /**
-   * 버튼 생성
-   */
   private createButton(text: string, onClick: () => void): HTMLButtonElement {
     const button = document.createElement('button');
-    button.className = 'bg-white/5 hover:bg-white/10 active:bg-white/5 text-white/90 text-sm font-semibold py-2.5 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border border-white/10';
-    button.textContent = text;
+    button.className = 'group relative flex items-center justify-center gap-2 bg-gradient-to-br from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 active:from-white/5 active:to-white/5 text-white/90 text-sm font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] border border-white/10 hover:border-white/20 shadow-lg hover:shadow-white/5';
+    button.innerHTML = `<span class="opacity-70 group-hover:opacity-100 transition-opacity">📍</span> ${text}`;
     button.addEventListener('click', onClick);
     return button;
   }
 
-  /**
-   * 시간 입력 필드 생성
-   */
   private createTimeInput(placeholder: string, value: string): HTMLInputElement {
     const input = document.createElement('input');
     input.type = 'text';
     input.placeholder = placeholder;
     input.value = value;
-    input.className = 'chzzk-time-input bg-black/40 border border-white/10 text-white text-sm px-3 py-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-[#00ffa3]/50 focus:border-[#00ffa3]/50 transition-all hover:border-white/20';
+    input.className = 'chzzk-time-input bg-black/30 border border-white/10 text-white text-center text-base font-bold tracking-widest px-3 py-2.5 rounded-xl w-full focus:outline-none focus:bg-black/50 focus:border-[#00ffa3]/50 focus:shadow-[0_0_15px_-5px_rgba(0,255,163,0.3)] transition-all duration-300 placeholder-white/10 hover:border-white/20';
 
-    // 키보드 이벤트 전파 차단 (방향키 등이 비디오 플레이어로 전달되지 않도록)
     input.addEventListener('keydown', (e) => {
       e.stopPropagation();
     });
@@ -197,15 +173,12 @@ export class LoopOverlay {
     return input;
   }
 
-  /**
-   * 입력 행 생성
-   */
-  private createInputRow(label: string, input: HTMLInputElement): HTMLDivElement {
+  private createInputRow(label: string, input: HTMLInputElement, paddingClass: string = ''): HTMLDivElement {
     const row = document.createElement('div');
-    row.className = 'flex items-center gap-3';
+    row.className = `flex items-center gap-3 group ${paddingClass}`;
 
     const labelEl = document.createElement('label');
-    labelEl.className = 'text-white text-sm font-medium w-12 flex-shrink-0';
+    labelEl.className = 'text-white/60 text-xs font-bold uppercase tracking-wider w-[60px] text-center flex-shrink-0 group-hover:text-[#00ffa3] transition-colors';
     labelEl.textContent = label;
 
     row.appendChild(labelEl);
@@ -214,50 +187,47 @@ export class LoopOverlay {
     return row;
   }
 
-  /**
-   * 토글 버튼 생성
-   */
   private createToggleButton(): HTMLButtonElement {
     const button = document.createElement('button');
-    button.className = 'w-full bg-white/10 hover:bg-white/15 active:bg-white/5 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg border border-white/10';
-    button.textContent = '▶ 반복 시작';
+    const inactiveClass = 'w-full bg-gradient-to-r from-white/10 to-white/5 hover:from-white/15 hover:to-white/10 active:from-white/5 active:to-white/5 text-white/90 font-bold py-4 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg border border-white/10 tracking-wide flex items-center justify-center gap-2 group';
+    const activeClass = 'w-full bg-gradient-to-r from-[#00ffa3] to-[#00ffc8] text-black font-extrabold py-4 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_30px_rgba(0,255,163,0.4)] border-none animate-glow-pulse tracking-wide flex items-center justify-center gap-2';
+
+    button.className = inactiveClass;
+    button.innerHTML = '<span class="group-hover:translate-x-1 transition-transform">▶</span> 반복 시작';
 
     button.addEventListener('click', () => {
       const enabled = this.controller.toggle();
       if (enabled) {
-        button.textContent = '⏸ 반복 중지';
-        button.className = 'w-full bg-[#00ffa3] hover:bg-[#33ffb5] text-black font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[0_0_20px_rgba(0,255,163,0.2)] border border-[#00ffa3] animate-glow-pulse';
+        button.innerHTML = '<span>⏸</span> 반복 중지';
+        button.className = activeClass;
       } else {
-        button.textContent = '▶ 반복 시작';
-        button.className = 'w-full bg-white/10 hover:bg-white/15 active:bg-white/5 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg border border-white/10';
+        button.innerHTML = '<span class="group-hover:translate-x-1 transition-transform">▶</span> 반복 시작';
+        button.className = inactiveClass;
       }
     });
 
     return button;
   }
 
-  /**
-   * 드래그 기능 설정
-   */
   private setupDragging(element: HTMLElement): void {
     let wasDragging = false;
 
     element.addEventListener('mousedown', (e) => {
-      // 버튼이면 항상 드래그 허용, 패널이면 버튼/입력 외부만 드래그 허용
       const target = e.target as HTMLElement;
       const isButton = element instanceof HTMLButtonElement;
-      const shouldDrag = isButton || (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT');
+      
+      const closestButton = target.closest('button');
+      
+      const shouldDrag = isButton || (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && !closestButton);
 
       if (shouldDrag && this.container) {
         this.isDragging = true;
         wasDragging = false;
 
-        // 현재 위치를 left/top으로 변환 (right에서 left로 전환 시 점프 방지)
         const rect = this.container.getBoundingClientRect();
         const parent = this.container.offsetParent as HTMLElement;
         const parentRect = parent ? parent.getBoundingClientRect() : { left: 0, top: 0 };
 
-        // 현재 실제 위치를 left/top으로 고정
         const currentLeft = rect.left - parentRect.left;
         const currentTop = rect.top - parentRect.top;
 
@@ -266,7 +236,6 @@ export class LoopOverlay {
         this.container.style.right = 'auto';
         this.container.style.bottom = 'auto';
 
-        // 마우스와 요소의 상대 위치 저장
         this.dragOffset = {
           x: e.clientX - rect.left,
           y: e.clientY - rect.top,
@@ -281,7 +250,6 @@ export class LoopOverlay {
         const parent = this.container.offsetParent as HTMLElement;
         const parentRect = parent ? parent.getBoundingClientRect() : { left: 0, top: 0 };
 
-        // 부모 기준 좌표로 계산
         const x = e.clientX - parentRect.left - this.dragOffset.x;
         const y = e.clientY - parentRect.top - this.dragOffset.y;
 
@@ -292,7 +260,6 @@ export class LoopOverlay {
 
     const handleMouseUp = (e: MouseEvent) => {
       if (this.isDragging && wasDragging) {
-        // 드래그가 있었다면 이벤트 전파 차단
         e.stopPropagation();
         e.preventDefault();
       }
@@ -301,12 +268,9 @@ export class LoopOverlay {
     };
 
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp, true); // capture 단계에서 처리
+    document.addEventListener('mouseup', handleMouseUp, true);
   }
 
-  /**
-   * 시간 형식 파싱 (HH:MM:SS -> 초)
-   */
   private parseTime(timeStr: string): number | null {
     const parts = timeStr.split(':').map(Number);
     if (parts.length === 3 && parts.every(n => !isNaN(n))) {
@@ -315,9 +279,6 @@ export class LoopOverlay {
     return null;
   }
 
-  /**
-   * 시간 형식 변환 (초 -> HH:MM:SS)
-   */
   private formatTime(seconds: number): string {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -325,24 +286,17 @@ export class LoopOverlay {
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  /**
-   * 시간 입력 필드 업데이트
-   */
   private updateTimeInput(input: HTMLInputElement, time: number): void {
     input.value = this.formatTime(time);
   }
 
-  /**
-   * 최소화 버튼 생성
-   */
   private createMinimizedButton(): HTMLButtonElement {
     const button = document.createElement('button');
-    button.className = 'bg-black/80 hover:bg-black text-[#00ffa3] backdrop-blur-xl rounded-full w-12 h-12 flex items-center justify-center shadow-2xl border border-white/10 transition-all duration-300 hover:scale-110 hover:shadow-[#00ffa3]/20 animate-scale-in';
+    button.className = 'bg-black/80 hover:bg-black text-[#00ffa3] backdrop-blur-xl rounded-full w-14 h-14 flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-white/10 transition-all duration-300 hover:scale-110 hover:shadow-[0_0_20px_rgba(0,255,163,0.3)] animate-scale-in z-[9999]';
     button.style.cursor = 'move';
-    button.innerHTML = '🔁';
+    button.innerHTML = '<span class="text-2xl">🔁</span>';
     button.title = '구간 반복 패널 열기';
 
-    // 클릭 vs 드래그 구분
     let clickStartTime = 0;
     button.addEventListener('mousedown', () => {
       clickStartTime = Date.now();
@@ -350,21 +304,16 @@ export class LoopOverlay {
 
     button.addEventListener('click', (e) => {
       const clickDuration = Date.now() - clickStartTime;
-      // 짧은 클릭만 토글 (드래그가 아닌 경우)
       if (clickDuration < 200) {
         this.toggleMinimize();
       }
     });
 
-    // 드래그 기능 추가
     this.setupDragging(button);
 
     return button;
   }
 
-  /**
-   * 최소화/펼치기 토글
-   */
   private toggleMinimize(): void {
     this.isMinimized = !this.isMinimized;
 
